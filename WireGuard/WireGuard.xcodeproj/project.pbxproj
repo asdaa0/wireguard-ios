@@ -12,7 +12,33 @@
 		6FF4AC22211EC472002C96EB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6FF4AC20211EC472002C96EB /* LaunchScreen.storyboard */; };
 		6FF4AC2F211F1F57002C96EB /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FF4AC2E211F1F57002C96EB /* MainViewController.swift */; };
 		6FF4AC472120B9E0002C96EB /* NetworkExtension.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6FF4AC462120B9E0002C96EB /* NetworkExtension.framework */; };
+		6FF4AC722120BFC4002C96EB /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FF4AC712120BFC4002C96EB /* PacketTunnelProvider.swift */; };
+		6FF4AC772120BFC4002C96EB /* PacketTunnelProvider.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 6FF4AC6F2120BFC4002C96EB /* PacketTunnelProvider.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		6FF4AC752120BFC4002C96EB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6FF4AC0C211EC46F002C96EB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6FF4AC6E2120BFC4002C96EB;
+			remoteInfo = PacketTunnelProvider;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		6FF4AC7B2120BFC4002C96EB /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				6FF4AC772120BFC4002C96EB /* PacketTunnelProvider.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		6FF4AC14211EC46F002C96EB /* WireGuard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WireGuard.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -24,6 +50,10 @@
 		6FF4AC2E211F1F57002C96EB /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		6FF4AC462120B9E0002C96EB /* NetworkExtension.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = NetworkExtension.framework; path = System/Library/Frameworks/NetworkExtension.framework; sourceTree = SDKROOT; };
 		6FF4AC482120B9E0002C96EB /* WireGuard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WireGuard.entitlements; sourceTree = "<group>"; };
+		6FF4AC6F2120BFC4002C96EB /* PacketTunnelProvider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PacketTunnelProvider.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		6FF4AC712120BFC4002C96EB /* PacketTunnelProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PacketTunnelProvider.swift; sourceTree = "<group>"; };
+		6FF4AC732120BFC4002C96EB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		6FF4AC742120BFC4002C96EB /* PacketTunnelProvider.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PacketTunnelProvider.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,6 +65,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6FF4AC6C2120BFC4002C96EB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -42,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				6FF4AC16211EC46F002C96EB /* WireGuard */,
+				6FF4AC702120BFC4002C96EB /* PacketTunnelProvider */,
 				6FF4AC15211EC46F002C96EB /* Products */,
 				6FF4AC452120B9E0002C96EB /* Frameworks */,
 			);
@@ -51,6 +89,7 @@
 			isa = PBXGroup;
 			children = (
 				6FF4AC14211EC46F002C96EB /* WireGuard.app */,
+				6FF4AC6F2120BFC4002C96EB /* PacketTunnelProvider.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -77,6 +116,16 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		6FF4AC702120BFC4002C96EB /* PacketTunnelProvider */ = {
+			isa = PBXGroup;
+			children = (
+				6FF4AC712120BFC4002C96EB /* PacketTunnelProvider.swift */,
+				6FF4AC732120BFC4002C96EB /* Info.plist */,
+				6FF4AC742120BFC4002C96EB /* PacketTunnelProvider.entitlements */,
+			);
+			path = PacketTunnelProvider;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -87,15 +136,34 @@
 				6FF4AC10211EC46F002C96EB /* Sources */,
 				6FF4AC11211EC46F002C96EB /* Frameworks */,
 				6FF4AC12211EC46F002C96EB /* Resources */,
+				6FF4AC7B2120BFC4002C96EB /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				6FF4AC762120BFC4002C96EB /* PBXTargetDependency */,
 			);
 			name = WireGuard;
 			productName = WireGuard;
 			productReference = 6FF4AC14211EC46F002C96EB /* WireGuard.app */;
 			productType = "com.apple.product-type.application";
+		};
+		6FF4AC6E2120BFC4002C96EB /* PacketTunnelProvider */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 6FF4AC7A2120BFC4002C96EB /* Build configuration list for PBXNativeTarget "PacketTunnelProvider" */;
+			buildPhases = (
+				6FF4AC6B2120BFC4002C96EB /* Sources */,
+				6FF4AC6C2120BFC4002C96EB /* Frameworks */,
+				6FF4AC6D2120BFC4002C96EB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PacketTunnelProvider;
+			productName = PacketTunnelProvider;
+			productReference = 6FF4AC6F2120BFC4002C96EB /* PacketTunnelProvider.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -115,6 +183,9 @@
 							};
 						};
 					};
+					6FF4AC6E2120BFC4002C96EB = {
+						CreatedOnToolsVersion = 9.4.1;
+					};
 				};
 			};
 			buildConfigurationList = 6FF4AC0F211EC46F002C96EB /* Build configuration list for PBXProject "WireGuard" */;
@@ -131,6 +202,7 @@
 			projectRoot = "";
 			targets = (
 				6FF4AC13211EC46F002C96EB /* WireGuard */,
+				6FF4AC6E2120BFC4002C96EB /* PacketTunnelProvider */,
 			);
 		};
 /* End PBXProject section */
@@ -142,6 +214,13 @@
 			files = (
 				6FF4AC22211EC472002C96EB /* LaunchScreen.storyboard in Resources */,
 				6FF4AC1F211EC472002C96EB /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6FF4AC6D2120BFC4002C96EB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -157,7 +236,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6FF4AC6B2120BFC4002C96EB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6FF4AC722120BFC4002C96EB /* PacketTunnelProvider.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6FF4AC762120BFC4002C96EB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6FF4AC6E2120BFC4002C96EB /* PacketTunnelProvider */;
+			targetProxy = 6FF4AC752120BFC4002C96EB /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		6FF4AC20211EC472002C96EB /* LaunchScreen.storyboard */ = {
@@ -290,6 +385,7 @@
 		6FF4AC27211EC472002C96EB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = WireGuard/WireGuard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -308,6 +404,7 @@
 		6FF4AC28211EC472002C96EB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = WireGuard/WireGuard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -318,6 +415,44 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		6FF4AC782120BFC4002C96EB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PacketTunnelProvider/PacketTunnelProvider.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PacketTunnelProvider/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID).PacketTunnelProvider";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 4.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		6FF4AC792120BFC4002C96EB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = PacketTunnelProvider/PacketTunnelProvider.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = PacketTunnelProvider/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID).PacketTunnelProvider";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -340,6 +475,15 @@
 			buildConfigurations = (
 				6FF4AC27211EC472002C96EB /* Debug */,
 				6FF4AC28211EC472002C96EB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		6FF4AC7A2120BFC4002C96EB /* Build configuration list for PBXNativeTarget "PacketTunnelProvider" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6FF4AC782120BFC4002C96EB /* Debug */,
+				6FF4AC792120BFC4002C96EB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
