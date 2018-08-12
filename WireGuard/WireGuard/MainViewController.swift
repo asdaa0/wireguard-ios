@@ -10,6 +10,23 @@ import UIKit
 
 class MainViewController: UIViewController {
     override func loadView() {
-        self.view = UIView()
+        let view = UIView()
+
+        // A button that turns on our packet tunnel
+        let button = UIButton(type: .system)
+        button.setTitle("Turn On", for: .normal)
+        button.addTarget(self, action: #selector(turnOnPacketTunnel), for: .touchUpInside)
+        view.addSubview(button)
+
+        // Center the button on the root view
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        button.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+
+        self.view = view
+    }
+
+    @objc func turnOnPacketTunnel() {
+        print("turn on")
     }
 }
