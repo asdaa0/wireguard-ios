@@ -27,6 +27,13 @@ class MainViewController: UIViewController {
     }
 
     @objc func turnOnPacketTunnel() {
-        print("turn on")
+        let interface = TunnelController.TunnelInterface(
+            name: "wg0.conf",
+            localizedDescription: "Test",
+            settings: "settings_test",
+            address: "address_test",
+            dns: "dns_test"
+        )
+        TunnelController.startTunnel(interface: interface)
     }
 }
