@@ -56,6 +56,7 @@
 		6FF4AC732120BFC4002C96EB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6FF4AC742120BFC4002C96EB /* PacketTunnelProvider.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PacketTunnelProvider.entitlements; sourceTree = "<group>"; };
 		6FF4AC7E2120C886002C96EB /* TunnelController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TunnelController.swift; sourceTree = "<group>"; };
+		6FF4AC822122A738002C96EB /* PacketTunnelProvider-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "PacketTunnelProvider-Bridging-Header.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -125,6 +126,7 @@
 				6FF4AC712120BFC4002C96EB /* PacketTunnelProvider.swift */,
 				6FF4AC732120BFC4002C96EB /* Info.plist */,
 				6FF4AC742120BFC4002C96EB /* PacketTunnelProvider.entitlements */,
+				6FF4AC822122A738002C96EB /* PacketTunnelProvider-Bridging-Header.h */,
 			);
 			path = PacketTunnelProvider;
 			sourceTree = "<group>";
@@ -427,6 +429,7 @@
 		6FF4AC782120BFC4002C96EB /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = PacketTunnelProvider/PacketTunnelProvider.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = PacketTunnelProvider/Info.plist;
@@ -435,9 +438,15 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"-L../wireguard-go-bridge/",
+					"-lwg-go",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID).PacketTunnelProvider";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "PacketTunnelProvider/PacketTunnelProvider-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -446,6 +455,7 @@
 		6FF4AC792120BFC4002C96EB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = PacketTunnelProvider/PacketTunnelProvider.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				INFOPLIST_FILE = PacketTunnelProvider/Info.plist;
@@ -454,9 +464,14 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
+				OTHER_LDFLAGS = (
+					"-L../wireguard-go-bridge/",
+					"-lwg-go",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(APP_ID).PacketTunnelProvider";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SWIFT_OBJC_BRIDGING_HEADER = "PacketTunnelProvider/PacketTunnelProvider-Bridging-Header.h";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
