@@ -120,11 +120,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     os_log("reasserting for addres change from: %{public}@ to: %{public}@", log: Log.general, type: .info, currentIp, detectedIp)
                     if self?.wireGuardWrapper.reassert() == false {
                         self?.cancelTunnelWithError(PacketTunnelProviderError.reassertionFailed)
+                        self?.wireGuardWrapper.configured = false
                     }
                     self?.reasserting = false
                 }
             }
-            self?.scheduledTimerWithTimeInterval()
+            if self?.wireGuardWrapper.configured == true {
+                self?.scheduledTimerWithTimeInterval()
+            }
         })
     }
 }

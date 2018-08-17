@@ -184,7 +184,7 @@ static ssize_t do_read(const void *ctx, const unsigned char *buf, size_t len)
         [wrapper.condition lock];
         @synchronized(wrapper.packets) {
             if (wrapper.packets.count == 0) {
-                os_log_debug([WireGuardGoWrapper log], "do_read - no packet - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
+//                os_log_debug([WireGuardGoWrapper log], "do_read - no packet - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
 
                 return;
             }
