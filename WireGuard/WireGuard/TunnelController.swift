@@ -19,6 +19,7 @@ class TunnelController {
         let name: String
         let localizedDescription: String
         let settings: String
+        let serverAddress: String
         let address: String
         let subnetMask: String
         let dnsServers: [String]
@@ -56,7 +57,7 @@ class TunnelController {
             let config = NETunnelProviderProtocol()
             let appId = Bundle.main.bundleIdentifier!
             config.providerBundleIdentifier = "\(appId).PacketTunnelProvider"
-            config.serverAddress = interface.address
+            config.serverAddress = interface.serverAddress
             config.username = interface.name
             tunnelProviderManager.protocolConfiguration = config
             tunnelProviderManager.localizedDescription = interface.localizedDescription

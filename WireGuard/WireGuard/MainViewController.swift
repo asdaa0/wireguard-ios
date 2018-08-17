@@ -39,6 +39,7 @@ class MainViewController: UIViewController {
                 name: "wg0.conf",
                 localizedDescription: "Test",
                 settings: "settings_test",
+                serverAddress: "server_address_test",
                 address: "address_test",
                 subnetMask: "subnet_mask_test",
                 dnsServers: ["dns_test"]
