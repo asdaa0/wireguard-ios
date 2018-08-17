@@ -14,6 +14,7 @@ enum PacketTunnelProviderError : Error {
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
 
+    var wgHandle: Int32?
     var wgContext: WireGuardContext? = nil
 
     override func startTunnel(options: [String : NSObject]?,
@@ -46,7 +47,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         guard let wgCtxPtr = wgCtxPtr else { return 0 }
                         guard let buf = buf else { return 0 }
                         let wgContext = wgCtxPtr.bindMemory(to: WireGuardContext.self, capacity: 1).pointee
-                        guard let packet = wgContext.readPacket() else { return 0 }
+                        var isTunnelClosed = false
+                        guard let packet = wgContext.readPacket(isTunnelClosed: &isTunnelClosed) else { return 0 }
+                        if (isTunnelClosed) { return -1 }
                         let packetData = packet.data
                         if (packetData.count <= len) {
                             packetData.copyBytes(to: buf, count: packetData.count)
@@ -68,7 +71,9 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         }()
                         guard let protocolFamily = ipVersion else { fatalError("Unknown IP version") }
                         let packet = NEPacket(data: Data(bytes: buf, count: len), protocolFamily: protocolFamily)
-                        let isWritten = wgContext.writePacket(packet: packet)
+                        var isTunnelClosed = false
+                        let isWritten = wgContext.writePacket(packet: packet, isTunnelClosed: &isTunnelClosed)
+                        if (isTunnelClosed) { return -1 }
                         if (isWritten) {
                             return len
                         }
@@ -82,6 +87,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             startTunnelCompletionHandler(PacketTunnelProviderError.cannotTurnOnTunnel)
             return
         }
+
+        wgHandle = handle
 
         let networkSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: address)
         let ipv4Settings = NEIPv4Settings(addresses: [address], subnetMasks: [subnetMask])
@@ -102,6 +109,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
         // Add code here to start the process of stopping the tunnel.
+        if let handle = wgHandle {
+            wgTurnOff(handle)
+        }
+        wgContext?.closeTunnel()
         completionHandler()
     }
 
@@ -125,12 +136,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 class WireGuardContext {
     private var packetFlow: NEPacketTunnelFlow
     private var outboundPackets: [NEPacket] = []
+    private var isTunnelClosed: Bool = false
+    private let readPacketCondition = NSCondition()
 
     init(packetFlow: NEPacketTunnelFlow) {
         self.packetFlow = packetFlow
     }
 
-    func readPacket() -> NEPacket? {
+    func closeTunnel() {
+        isTunnelClosed = true
+        readPacketCondition.signal()
+    }
+
+    func readPacket(isTunnelClosed: inout Bool) -> NEPacket? {
         if (outboundPackets.isEmpty) {
             let readPacketCondition = NSCondition()
             readPacketCondition.lock()
@@ -140,7 +158,7 @@ class WireGuardContext {
                 readPacketCondition.signal()
             }
             // Wait till the completion handler of packetFlow.readPacketObjects() finishes
-            while (packetsObtained == nil) {
+            while (packetsObtained == nil && !self.isTunnelClosed) {
                 readPacketCondition.wait()
             }
             if let packetsObtained = packetsObtained {
@@ -148,6 +166,7 @@ class WireGuardContext {
             }
             readPacketCondition.unlock()
         }
+        isTunnelClosed = self.isTunnelClosed
         if (outboundPackets.isEmpty) {
             return nil
         } else {
@@ -155,7 +174,8 @@ class WireGuardContext {
         }
     }
 
-    func writePacket(packet: NEPacket) -> Bool {
+    func writePacket(packet: NEPacket, isTunnelClosed: inout Bool) -> Bool {
+        isTunnelClosed = self.isTunnelClosed
         return packetFlow.writePacketObjects([packet])
     }
 }
