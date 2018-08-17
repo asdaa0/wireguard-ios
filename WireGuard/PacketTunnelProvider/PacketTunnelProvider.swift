@@ -14,7 +14,7 @@ enum PacketTunnelProviderError : Error {
 
 class PacketTunnelProvider: NEPacketTunnelProvider {
 
-    var wgContext = WireGuardContext()
+    var wgContext: WireGuardContext? = nil
 
     override func startTunnel(options: [String : NSObject]?,
                               completionHandler startTunnelCompletionHandler: @escaping (Error?) -> Void) {
@@ -36,6 +36,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             NSLog("wg log: \(level): \(tag): \(msg)")
         }
 
+        wgContext = WireGuardContext(packetFlow: self.packetFlow)
+
         let handle = withStringsAsGoStrings(name, settings) { (nameGoStr, settingsGoStr) -> Int32 in
             return withUnsafeMutablePointer(to: &wgContext) { (wgCtxPtr) -> Int32 in
                 return wgTurnOn(nameGoStr, settingsGoStr,
@@ -44,7 +46,8 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                         guard let wgCtxPtr = wgCtxPtr else { return 0 }
                         guard let buf = buf else { return 0 }
                         let wgContext = wgCtxPtr.bindMemory(to: WireGuardContext.self, capacity: 1).pointee
-                        let packetData: Data = wgContext.readPacket()
+                        guard let packet = wgContext.readPacket() else { return 0 }
+                        let packetData = packet.data
                         if (packetData.count <= len) {
                             packetData.copyBytes(to: buf, count: packetData.count)
                             return packetData.count
@@ -55,11 +58,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
                     { (wgCtxPtr, buf, len) -> Int in
                         guard let wgCtxPtr = wgCtxPtr else { return 0 }
                         guard let buf = buf else { return 0 }
+                        guard (len > 0) else { return 0 }
                         let wgContext = wgCtxPtr.bindMemory(to: WireGuardContext.self, capacity: 1).pointee
-                        let packetData = Data(bytes: buf, count: len)
-                        let isWritten = wgContext.writePacket(packetData: packetData)
+                        let ipVersionBits = (buf[0] & 0xf0) >> 4
+                        let ipVersion: sa_family_t? = {
+                            if (ipVersionBits == 4) { return sa_family_t(AF_INET) } // IPv4
+                            if (ipVersionBits == 6) { return sa_family_t(AF_INET6) } // IPv6
+                            return nil
+                        }()
+                        guard let protocolFamily = ipVersion else { fatalError("Unknown IP version") }
+                        let packet = NEPacket(data: Data(bytes: buf, count: len), protocolFamily: protocolFamily)
+                        let isWritten = wgContext.writePacket(packet: packet)
                         if (isWritten) {
-                            return packetData.count
+                            return len
                         }
                         return 0
                     },
@@ -82,9 +93,10 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         setTunnelNetworkSettings(networkSettings) { (error) in
             if let error = error {
                 NSLog("Error setting network settings: \(error)")
-                return
+                startTunnelCompletionHandler(PacketTunnelProviderError.cannotTurnOnTunnel)
+            } else {
+                startTunnelCompletionHandler(nil /* No errors */)
             }
-            startTunnelCompletionHandler(nil /* No errors */)
         }
     }
 
@@ -111,15 +123,40 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 }
 
 class WireGuardContext {
-    func readPacket() -> Data {
-        // TODO
-        NSLog("readPacket")
-        return Data()
+    private var packetFlow: NEPacketTunnelFlow
+    private var outboundPackets: [NEPacket] = []
+
+    init(packetFlow: NEPacketTunnelFlow) {
+        self.packetFlow = packetFlow
     }
-    func writePacket(packetData: Data) -> Bool {
-        // TODO
-        NSLog("writePacket")
-        return false
+
+    func readPacket() -> NEPacket? {
+        if (outboundPackets.isEmpty) {
+            let readPacketCondition = NSCondition()
+            readPacketCondition.lock()
+            var packetsObtained: [NEPacket]? = nil
+            packetFlow.readPacketObjects { (packets: [NEPacket]) in
+                packetsObtained = packets
+                readPacketCondition.signal()
+            }
+            // Wait till the completion handler of packetFlow.readPacketObjects() finishes
+            while (packetsObtained == nil) {
+                readPacketCondition.wait()
+            }
+            if let packetsObtained = packetsObtained {
+                outboundPackets = packetsObtained
+            }
+            readPacketCondition.unlock()
+        }
+        if (outboundPackets.isEmpty) {
+            return nil
+        } else {
+            return outboundPackets.removeFirst()
+        }
+    }
+
+    func writePacket(packet: NEPacket) -> Bool {
+        return packetFlow.writePacketObjects([packet])
     }
 }
 
