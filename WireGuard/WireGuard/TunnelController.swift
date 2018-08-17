@@ -9,6 +9,10 @@
 import UIKit
 import NetworkExtension
 
+protocol TunnelControllerDelegate: class {
+    func tunnelStatusChanged(isConnected: Bool)
+}
+
 class TunnelController {
 
     struct TunnelInterface {
@@ -20,7 +24,20 @@ class TunnelController {
         let dnsServers: [String]
     }
 
-    static func startTunnel(interface: TunnelInterface) {
+    weak var delegate: TunnelControllerDelegate?
+    private var connectionObservationToken: AnyObject?
+    private var currentSession: NETunnelProviderSession?
+
+    var isTunnelConnected: Bool {
+        if let currentSession = currentSession {
+            if (currentSession.status == .connected) {
+                return true
+            }
+        }
+        return false
+    }
+
+    func startTunnel(interface: TunnelInterface) {
         NETunnelProviderManager.loadAllFromPreferences { (tunnels, loadError) in
             if let loadError = loadError {
                 print("Load error: \(loadError)")
@@ -68,6 +85,19 @@ class TunnelController {
                         "dnsServers" : interface.dnsServers
                     ]
                     let session = tunnelProviderManager.connection as! NETunnelProviderSession
+                    self.connectionObservationToken = NotificationCenter.default.addObserver(
+                        forName: .NEVPNStatusDidChange, object: session, queue: nil) { [weak self] (notification) in
+                            guard let s = self else { return }
+                            s.delegate?.tunnelStatusChanged(isConnected: (session.status == .connected))
+                            if (session.status == .disconnected) {
+                                if let token = s.connectionObservationToken {
+                                    NotificationCenter.default.removeObserver(token)
+                                }
+                                s.currentSession = nil
+                                s.connectionObservationToken = nil
+                            }
+                    }
+                    self.currentSession = session
                     do {
                         try session.startTunnel(options: options)
                     } catch (let e) {
@@ -75,6 +105,18 @@ class TunnelController {
                     }
                 }
             }
+        }
+    }
+
+    func stopTunnel() {
+        if let currentSession = currentSession {
+            currentSession.stopTunnel()
+        }
+    }
+
+    deinit {
+        if let token = connectionObservationToken {
+            NotificationCenter.default.removeObserver(token)
         }
     }
 }

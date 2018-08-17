@@ -9,13 +9,17 @@
 import UIKit
 
 class MainViewController: UIViewController {
+    var turnOnButton: UIButton?
+    let tunnelController = TunnelController()
+
     override func loadView() {
         let view = UIView()
 
         // A button that turns on our packet tunnel
         let button = UIButton(type: .system)
-        button.setTitle("Turn On", for: .normal)
-        button.addTarget(self, action: #selector(turnOnPacketTunnel), for: .touchUpInside)
+        let buttonText = tunnelController.isTunnelConnected ? "Turn off" : "Turn on"
+        button.setTitle(buttonText, for: .normal)
+        button.addTarget(self, action: #selector(togglePacketTunnel), for: .touchUpInside)
         view.addSubview(button)
 
         // Center the button on the root view
@@ -24,17 +28,30 @@ class MainViewController: UIViewController {
         button.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
 
         self.view = view
+        self.turnOnButton = button
     }
 
-    @objc func turnOnPacketTunnel() {
-        let interface = TunnelController.TunnelInterface(
-            name: "wg0.conf",
-            localizedDescription: "Test",
-            settings: "settings_test",
-            address: "address_test",
-            subnetMask: "subnet_mask_test",
-            dnsServers: ["dns_test"]
-        )
-        TunnelController.startTunnel(interface: interface)
+    @objc func togglePacketTunnel() {
+        if (tunnelController.isTunnelConnected) {
+            tunnelController.stopTunnel()
+        } else {
+            let interface = TunnelController.TunnelInterface(
+                name: "wg0.conf",
+                localizedDescription: "Test",
+                settings: "settings_test",
+                address: "address_test",
+                subnetMask: "subnet_mask_test",
+                dnsServers: ["dns_test"]
+            )
+            tunnelController.startTunnel(interface: interface)
+            tunnelController.delegate = self
+        }
+    }
+}
+
+extension MainViewController: TunnelControllerDelegate {
+    func tunnelStatusChanged(isConnected: Bool) {
+        let buttonText = isConnected ? "Turn off" : "Turn on"
+        turnOnButton?.setTitle(buttonText, for: .normal)
     }
 }
