@@ -32,7 +32,8 @@ class MainViewController: UIViewController {
             localizedDescription: "Test",
             settings: "settings_test",
             address: "address_test",
-            dns: "dns_test"
+            subnetMask: "subnet_mask_test",
+            dnsServers: ["dns_test"]
         )
         TunnelController.startTunnel(interface: interface)
     }

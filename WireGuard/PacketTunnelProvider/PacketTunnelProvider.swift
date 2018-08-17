@@ -16,16 +16,19 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     var wgContext = WireGuardContext()
 
-    override func startTunnel(options: [String : NSObject]?, completionHandler: @escaping (Error?) -> Void) {
+    override func startTunnel(options: [String : NSObject]?,
+                              completionHandler startTunnelCompletionHandler: @escaping (Error?) -> Void) {
         let name = (options?["name"] as? String) ?? "NO_NAME"
         let settings = (options?["settings"] as? String) ?? "NO_SETTINGS"
         let address = (options?["address"] as? String) ?? "NO_ADDRESS"
-        let dns = (options?["dns"] as? String) ?? "NO_DNS"
+        let subnetMask = (options?["subnetMask"] as? String) ?? "NO_SUBNET_MASK"
+        let dnsServers = (options?["dnsServers"] as? [String]) ?? ["NO_DNS"]
         NSLog("startTunnel:")
         NSLog("  Name: \(name)")
         NSLog("  Settings: \(settings)")
         NSLog("  Address: \(address)")
-        NSLog("  DNS: \(dns)")
+        NSLog("  Subnet mask: \(subnetMask)")
+        NSLog("  DNS servers: \(dnsServers)")
 
         wgSetLogger { (level, tagCStr, msgCStr) in
             let tag = (tagCStr != nil) ? String(cString: tagCStr!) : ""
@@ -65,18 +68,31 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         }
 
         if (handle < 0) {
-            completionHandler(PacketTunnelProviderError.cannotTurnOnTunnel)
+            startTunnelCompletionHandler(PacketTunnelProviderError.cannotTurnOnTunnel)
             return
         }
 
-        completionHandler(nil /* No errors */)
+        let networkSettings = NEPacketTunnelNetworkSettings(tunnelRemoteAddress: address)
+        let ipv4Settings = NEIPv4Settings(addresses: [address], subnetMasks: [subnetMask])
+        ipv4Settings.includedRoutes = [NEIPv4Route.default()] // Use tunnel for all network traffic
+        networkSettings.ipv4Settings = ipv4Settings
+        // WireGuard's overhead is 60 bytes for IPv4 and 80 bytes for IPv6
+        networkSettings.tunnelOverheadBytes = 80
+        networkSettings.dnsSettings = NEDNSSettings(servers: dnsServers)
+        setTunnelNetworkSettings(networkSettings) { (error) in
+            if let error = error {
+                NSLog("Error setting network settings: \(error)")
+                return
+            }
+            startTunnelCompletionHandler(nil /* No errors */)
+        }
     }
 
     override func stopTunnel(with reason: NEProviderStopReason, completionHandler: @escaping () -> Void) {
         // Add code here to start the process of stopping the tunnel.
         completionHandler()
     }
-    
+
     override func handleAppMessage(_ messageData: Data, completionHandler: ((Data?) -> Void)?) {
         // Add code here to handle the message.
         if let handler = completionHandler {

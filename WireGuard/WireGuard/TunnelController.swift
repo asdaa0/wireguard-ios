@@ -16,7 +16,8 @@ class TunnelController {
         let localizedDescription: String
         let settings: String
         let address: String
-        let dns: String
+        let subnetMask: String
+        let dnsServers: [String]
     }
 
     static func startTunnel(interface: TunnelInterface) {
@@ -59,11 +60,12 @@ class TunnelController {
                     }
 
                     // Attempt to start the tunnel
-                    let options: [String: String] = [
+                    let options: [String: Any] = [
                         "name" : interface.name,
                         "settings" : interface.settings,
                         "address": interface.address,
-                        "dns" : interface.dns
+                        "subnetMask": interface.subnetMask,
+                        "dnsServers" : interface.dnsServers
                     ]
                     let session = tunnelProviderManager.connection as! NETunnelProviderSession
                     do {
