@@ -11,6 +11,7 @@ import os.log
 
 enum PacketTunnelProviderError: Error {
     case tunnelSetupFailed
+    case reassertionFailed
 }
 
 /// A packet tunnel provider object.
@@ -20,11 +21,14 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     /// A reference to the WireGuard wrapper object.
     let wireGuardWrapper = WireGuardGoWrapper()
+    let ipDetectQueue = DispatchQueue(label: "IP detection queue")
+    var currentIp: String?
 
     // MARK: NEPacketTunnelProvider
 
     /// Begin the process of establishing the tunnel.
     override func startTunnel(options: [String: NSObject]?, completionHandler: @escaping (Error?) -> Void) {
+        scheduledTimerWithTimeInterval()
         os_log("Starting tunnel", log: Log.general, type: .info)
 
         let config = self.protocolConfiguration as! NETunnelProviderProtocol // swiftlint:disable:this force_cast
@@ -102,5 +106,25 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
         let responseData = "Hello app".data(using: String.Encoding.utf8)
         completionHandler?(responseData)
+    }
+
+    func scheduledTimerWithTimeInterval() {
+        // Run every second
+        ipDetectQueue.asyncAfter(deadline: .now() + .seconds(1), execute: {[weak self] in
+            let detectedIp = WireGuardGoWrapper.detectAddress()
+            os_log("current ip address: %{public}@", log: Log.general, type: .info, WireGuardGoWrapper.detectAddress())
+            if let currentIp = self?.currentIp, currentIp != detectedIp {
+                self?.currentIp = detectedIp
+                if self?.wireGuardWrapper.configured ?? false {
+                    self?.reasserting = true
+                    os_log("reasserting for addres change from: %{public}@ to: %{public}@", log: Log.general, type: .info, currentIp, detectedIp)
+                    if self?.wireGuardWrapper.reassert() == false {
+                        self?.cancelTunnelWithError(PacketTunnelProviderError.reassertionFailed)
+                    }
+                    self?.reasserting = false
+                }
+            }
+            self?.scheduledTimerWithTimeInterval()
+        })
     }
 }

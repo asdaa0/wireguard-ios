@@ -7,6 +7,8 @@
 //
 
 #include <os/log.h>
+#include <ifaddrs.h>
+#include <arpa/inet.h>
 
 #include "wireguard.h"
 #import "WireGuardGoWrapper.h"
@@ -27,6 +29,8 @@ static void do_log(int level, const char *tag, const char *msg);
 @property (nonatomic, strong) NSMutableArray<NSData *> *packets;
 @property (nonatomic, strong) NSMutableArray<NSNumber *> *protocols;
 @property (nonatomic, strong) dispatch_queue_t dispatchQueue;
+@property (nonatomic, strong) NSString *activeinterfaceName;
+@property (nonatomic, strong) NSString *activeSettings;
 
 @property (nonatomic, strong) NSCondition *condition;
 
@@ -47,8 +51,19 @@ static void do_log(int level, const char *tag, const char *msg);
     return self;
 }
 
+- (BOOL) reassert {
+    NSString *interfaceName = self.activeinterfaceName;
+    NSString *settings = self.activeSettings;
+
+    [self turnOff];
+    return [self turnOnWithInterfaceName:interfaceName settingsString:settings];
+}
+
 - (BOOL) turnOnWithInterfaceName: (NSString *)interfaceName settingsString: (NSString *)settingsString
 {
+    self.activeinterfaceName = interfaceName;
+    self.activeSettings = settingsString;
+
     os_log([WireGuardGoWrapper log], "WireGuard Go Version %{public}s", wgVersion());
 
     wgSetLogger(do_log);
@@ -66,6 +81,8 @@ static void do_log(int level, const char *tag, const char *msg);
     self.isClosed = YES;
     self.configured = NO;
     wgTurnOff(self.handle);
+    self.activeinterfaceName = nil;
+    self.activeSettings = nil;
     self.handle = -1;
 }
 
@@ -80,7 +97,7 @@ static void do_log(int level, const char *tag, const char *msg);
             return;
         }
 
-        os_log_debug([WireGuardGoWrapper log], "readPackets - read call - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
+//        os_log_debug([WireGuardGoWrapper log], "readPackets - read call - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
 
         [self.packetFlow readPacketsWithCompletionHandler:^(NSArray<NSData *> * _Nonnull packets, NSArray<NSNumber *> * _Nonnull protocols) {
             [self.condition lock];
@@ -88,7 +105,7 @@ static void do_log(int level, const char *tag, const char *msg);
                 [self.packets addObjectsFromArray:packets];
                 [self.protocols addObjectsFromArray:protocols];
             }
-            os_log_debug([WireGuardGoWrapper log], "readPackets - signal - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
+//            os_log_debug([WireGuardGoWrapper log], "readPackets - signal - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
             [self.condition signal];
             [self.condition unlock];
             [self readPackets];
@@ -108,6 +125,42 @@ static void do_log(int level, const char *tag, const char *msg);
     });
 
     return subLog;
+}
+
++ (NSString *) detectAddress {
+    struct ifaddrs *interfaces = NULL;
+    struct ifaddrs *temp_addr = NULL;
+    NSString *wifiAddress = nil;
+    NSString *cellAddress = nil;
+
+    // retrieve the current interfaces - returns 0 on success
+    if(!getifaddrs(&interfaces)) {
+        // Loop through linked list of interfaces
+        temp_addr = interfaces;
+        while(temp_addr != NULL) {
+            sa_family_t sa_type = temp_addr->ifa_addr->sa_family;
+            if(sa_type == AF_INET || sa_type == AF_INET6) {
+                NSString *name = [NSString stringWithUTF8String:temp_addr->ifa_name];
+                NSString *addr = [NSString stringWithUTF8String:inet_ntoa(((struct sockaddr_in *)temp_addr->ifa_addr)->sin_addr)]; // pdp_ip0
+                //NSLog(@"NAME: \"%@\" addr: %@", name, addr); // see for yourself
+
+                if([name isEqualToString:@"en0"]) {
+                    // Interface is the wifi connection on the iPhone
+                    wifiAddress = addr;
+                } else
+                    if([name isEqualToString:@"pdp_ip0"]) {
+                        // Interface is the cell connection on the iPhone
+                        cellAddress = addr;
+                    }
+            }
+            temp_addr = temp_addr->ifa_next;
+        }
+        // Free memory
+        freeifaddrs(interfaces);
+    }
+    NSString *addr = wifiAddress ? wifiAddress : cellAddress;
+
+    return addr;
 }
 
 @end
@@ -144,7 +197,7 @@ static ssize_t do_read(const void *ctx, const unsigned char *buf, size_t len)
     });
 
     if (packet == nil) {
-        os_log_debug([WireGuardGoWrapper log], "do_read - wait - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
+//        os_log_debug([WireGuardGoWrapper log], "do_read - wait - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
         [wrapper.condition wait];
         [wrapper.condition unlock];
         return 0;
@@ -159,13 +212,13 @@ static ssize_t do_read(const void *ctx, const unsigned char *buf, size_t len)
         return 0;
     }
     memcpy(buf, [packet bytes], packetLength);
-    os_log_debug([WireGuardGoWrapper log], "do_read - packet  - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
+//    os_log_debug([WireGuardGoWrapper log], "do_read - packet  - on thread \"%{public}@\" - %d", NSThread.currentThread.name, (int)NSThread.currentThread);
     return packetLength;
 }
 
 static ssize_t do_write(const void *ctx, const unsigned char *buf, size_t len)
 {
-    os_log_debug([WireGuardGoWrapper log], "do_write - start");
+//    os_log_debug([WireGuardGoWrapper log], "do_write - start");
 
     WireGuardGoWrapper *wrapper = (__bridge WireGuardGoWrapper *)ctx;
     //TODO: determine IPv4 or IPv6 status.

@@ -11,14 +11,16 @@
 
 @interface WireGuardGoWrapper : NSObject
 
-@property (nonatomic, strong) NEPacketTunnelFlow *packetFlow;
+@property (nonatomic, strong, nullable) NEPacketTunnelFlow *packetFlow;
 @property (nonatomic, assign) BOOL configured;
 
-- (BOOL) turnOnWithInterfaceName: (NSString *)interfaceName settingsString: (NSString *)settingsString;
+- (BOOL) turnOnWithInterfaceName: (NSString * _Nonnull)interfaceName settingsString: (NSString * _Nonnull)settingsString;
 - (void) turnOff;
+- (BOOL) reassert;
 
 - (void) startReadingPackets;
 
-+ (NSString *)versionWireGuardGo;
++ (NSString * _Nonnull)versionWireGuardGo;
++ (NSString * _Nonnull) detectAddress;
 
 @end
